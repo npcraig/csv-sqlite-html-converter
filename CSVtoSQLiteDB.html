@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV<>SQLite Converter - Local & Private</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 240 10% 3.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 240 10% 3.9%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 240 10% 3.9%;
+            --primary: 240 5.9% 10%;
+            --primary-foreground: 0 0% 98%;
+            --secondary: 240 4.8% 95.9%;
+            --secondary-foreground: 240 5.9% 10%;
+            --muted: 240 4.8% 95.9%;
+            --muted-foreground: 240 3.8% 46.1%;
+            --accent: 240 4.8% 95.9%;
+            --accent-foreground: 240 5.9% 10%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 0 0% 98%;
+            --border: 240 5.9% 90%;
+            --input: 240 5.9% 90%;
+            --ring: 240 5.9% 10%;
+            --success: 142 71% 45%;
+            --success-foreground: 0 0% 98%;
+            --warning: 38 92% 50%;
+            --warning-foreground: 0 0% 98%;
+            --radius: 0.5rem;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: hsl(var(--background));
+            min-height: 100vh;
+        }
+
+        .header {
+            background-color: hsl(var(--card));
+            border-bottom: 1px solid hsl(var(--border));
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+            color: hsl(var(--foreground));
+            letter-spacing: -0.025em;
+        }
+
+        .header p {
+            font-size: 1.25rem;
+            color: hsl(var(--muted-foreground));
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+        }
+
+        .privacy-badge {
+            display: inline-flex;
+            align-items: center;
+            background-color: hsl(var(--muted));
+            color: hsl(var(--muted-foreground));
+            padding: 0.75rem 1.5rem;
+            border-radius: calc(var(--radius) * 2);
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: 1px solid hsl(var(--border));
+            transition: all 0.2s ease;
+        }
+
+        .privacy-badge:hover {
+            background-color: hsl(var(--accent));
+            color: hsl(var(--accent-foreground));
+        }
+
+        .privacy-badge::before {
+            content: "🔒";
+            margin-right: 0.5rem;
+        }
+
+        .main-content {
+            padding: 2rem;
+            display: flex;
+            flex-direction: row;
+            gap: 2rem;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .conversion-card {
+            flex: 1;
+            min-width: 0;
+            max-width: 48%;
+            background-color: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .conversion-card:hover {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        .card-title {
+            font-size: 1.875rem;
+            font-weight: 600;
+            color: hsl(var(--foreground));
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-subtitle {
+            color: hsl(var(--muted-foreground));
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            font-weight: 400;
+        }
+
+        .upload-section {
+            border: 2px dashed hsl(var(--border));
+            border-radius: var(--radius);
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            background-color: hsl(var(--background));
+        }
+
+        .upload-section:hover {
+            border-color: hsl(var(--primary));
+            background-color: hsl(var(--muted));
+        }
+
+        .upload-section.dragover {
+            border-color: hsl(var(--primary));
+            background-color: hsl(var(--muted));
+            border-style: solid;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: hsl(var(--muted-foreground));
+        }
+
+        .upload-text {
+            font-size: 1.125rem;
+            color: hsl(var(--muted-foreground));
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn:hover:not(:disabled) {
+            background-color: hsl(var(--primary) / 0.9);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: hsl(var(--secondary));
+            color: hsl(var(--secondary-foreground));
+            border: 1px solid hsl(var(--border));
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: hsl(var(--secondary) / 0.8);
+        }
+
+        .options-section {
+            background-color: hsl(var(--muted) / 0.5);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            margin-bottom: 2rem;
+            border: 1px solid hsl(var(--border));
+        }
+
+        .options-title {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            color: hsl(var(--foreground));
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid hsl(var(--border));
+            gap: 0.5rem;
+        }
+
+        .options-title .options-toggle-icon {
+            font-size: 1rem;
+            color: hsl(var(--muted-foreground));
+            transition: transform 0.2s ease;
+            margin-right: 0;
+        }
+
+        .options-title .options-toggle-icon.open {
+            transform: rotate(180deg);
+            color: hsl(var(--foreground));
+        }
+
+        .options-content {
+            padding-top: 1rem;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-0.5rem);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .option-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .option-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: hsl(var(--foreground));
+            font-size: 0.875rem;
+        }
+
+        .option-group input, .option-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+        }
+
+        .option-group input:focus, .option-group select:focus {
+            outline: none;
+            border-color: hsl(var(--ring));
+            box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background-color: hsl(var(--background));
+            border-radius: var(--radius);
+            border: 1px solid hsl(var(--border));
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-group:hover {
+            background-color: hsl(var(--muted) / 0.5);
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 1rem;
+            height: 1rem;
+            accent-color: hsl(var(--primary));
+        }
+
+        .progress-section {
+            margin: 2rem 0;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 0.5rem;
+            background-color: hsl(var(--muted));
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: hsl(var(--primary));
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .status-message {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: var(--radius);
+            display: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-0.5rem);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-success {
+            background-color: hsl(var(--success) / 0.1);
+            color: hsl(var(--success));
+            border: 1px solid hsl(var(--success) / 0.2);
+        }
+
+        .status-error {
+            background-color: hsl(var(--destructive) / 0.1);
+            color: hsl(var(--destructive));
+            border: 1px solid hsl(var(--destructive) / 0.2);
+        }
+
+        .preview-section {
+            margin-top: 2rem;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .preview-section h3 {
+            color: hsl(var(--foreground));
+            margin-bottom: 1rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            background-color: hsl(var(--background));
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid hsl(var(--border));
+        }
+
+        .preview-table th,
+        .preview-table td {
+            border-bottom: 1px solid hsl(var(--border));
+            padding: 0.75rem 1rem;
+            text-align: left;
+        }
+
+        .preview-table th {
+            background-color: hsl(var(--muted));
+            color: hsl(var(--foreground));
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .preview-table tr:nth-child(even) {
+            background-color: hsl(var(--muted) / 0.5);
+        }
+
+        .preview-table tr:hover {
+            background-color: hsl(var(--muted));
+        }
+
+        .download-section {
+            text-align: center;
+            margin-top: 2rem;
+            display: none;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .sqlite-upload-section {
+            border: 2px dashed hsl(var(--border));
+            border-radius: var(--radius);
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            background-color: hsl(var(--background));
+        }
+
+        .sqlite-upload-section:hover {
+            border-color: hsl(var(--primary));
+            background-color: hsl(var(--muted));
+        }
+
+        .sqlite-upload-section.dragover {
+            border-color: hsl(var(--primary));
+            background-color: hsl(var(--muted));
+            border-style: solid;
+        }
+
+        .sqlite-options {
+            background-color: hsl(var(--muted) / 0.5);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            margin-bottom: 2rem;
+            border: 1px solid hsl(var(--border));
+        }
+
+        .footer {
+            background-color: hsl(var(--muted));
+            color: hsl(var(--muted-foreground));
+            padding: 2rem;
+            text-align: center;
+            font-size: 0.875rem;
+            border-top: 1px solid hsl(var(--border));
+            margin-top: 2rem;
+        }
+
+        .footer a {
+            color: hsl(var(--foreground));
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer a:hover {
+            color: hsl(var(--primary));
+        }
+
+        .fa-solid, .fa-regular, .fa-light, .fa-duotone, .fa-brands {
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+
+        .card-title .fa-solid, .options-title .fa-solid {
+            color: hsl(var(--primary));
+            margin-right: 0.75rem;
+            font-size: 1.25em;
+        }
+
+        .btn .fa-solid, .btn-secondary .fa-solid {
+            margin-right: 0.5rem;
+        }
+
+        .upload-icon .fa-solid {
+            font-size: 3rem;
+            color: hsl(var(--muted-foreground));
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1100px) {
+            .main-content {
+                flex-direction: column;
+                gap: 2rem;
+            }
+            .conversion-card {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            .conversion-card {
+                max-width: 100%;
+                padding: 1.5rem;
+            }
+            .header {
+                padding: 2rem 1rem;
+            }
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+
+        /* Animation utilities */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-0.5rem); }
+        }
+
+        .upload-section:hover .upload-icon {
+            animation: float 2s ease-in-out infinite;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 0.5rem;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: hsl(var(--muted));
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: hsl(var(--border));
+            border-radius: var(--radius);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: hsl(var(--muted-foreground));
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <h1><i class="fa-solid fa-arrows-rotate"></i> CSV ⇄ SQLite Converter</h1>
+                <p>Convert your files securely, privately, and 100% locally</p>
+                <div class="privacy-badge">
+                    100% Private & Local Processing
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- CSV to SQLite Section -->
+            <div class="conversion-card">
+                <h2 class="card-title"><i class="fa-solid fa-file-csv"></i> CSV to SQLite</h2>
+                <p class="card-subtitle">Transform your CSV data into a powerful SQLite database</p>
+                
+                <div class="upload-section" id="uploadSection">
+                    <div class="upload-icon"><i class="fa-solid fa-file-arrow-up"></i></div>
+                    <div class="upload-text">Drop your CSV file here or click to browse</div>
+                    <button class="btn" onclick="document.getElementById('fileInput').click()"><i class="fa-solid fa-folder-open"></i> Choose CSV File</button>
+                    <input type="file" id="fileInput" class="file-input" accept=".csv" />
+                </div>
+
+                <div class="options-section" id="csvOptionsSection" style="display: none;">
+                    <h3 class="options-title">
+                        <i class="fa-solid fa-sliders"></i> Conversion Options
+                        <i class="fa-solid fa-chevron-down options-toggle-icon" id="csvOptionsToggle"></i>
+                    </h3>
+                    <div class="options-content">
+                        <div class="option-group">
+                            <label for="tableName">Table Name:</label>
+                            <input type="text" id="tableName" value="data" placeholder="Enter table name">
+                        </div>
+                        <div class="option-group">
+                            <label for="delimiter">CSV Delimiter:</label>
+                            <select id="delimiter">
+                                <option value=",">Comma (,)</option>
+                                <option value=";">Semicolon (;)</option>
+                                <option value="\t">Tab</option>
+                                <option value="|">Pipe (|)</option>
+                            </select>
+                        </div>
+                        <div class="option-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="hasHeaders" checked>
+                                <label for="hasHeaders">First row contains headers</label>
+                            </div>
+                        </div>
+                        <div class="option-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="inferTypes" checked>
+                                <label for="inferTypes">Auto-detect column types</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-section" id="progressSection">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div id="progressText">Processing...</div>
+                </div>
+
+                <div class="status-message" id="statusMessage"></div>
+
+                <div class="preview-section" id="previewSection">
+                    <h3><i class="fa-solid fa-eye"></i> Data Preview (First 5 rows)</h3>
+                    <div id="previewContainer"></div>
+                </div>
+
+                <div class="download-section" id="downloadSection">
+                    <button class="btn" id="downloadBtn"><i class="fa-solid fa-download"></i> Download SQLite Database</button>
+                </div>
+            </div>
+
+            <!-- SQLite to CSV Section -->
+            <div class="conversion-card">
+                <h2 class="card-title"><i class="fa-solid fa-database"></i> SQLite to CSV</h2>
+                <p class="card-subtitle">Extract data from SQLite databases back to CSV format</p>
+                
+                <div class="sqlite-upload-section" id="sqliteUploadSection">
+                    <div class="upload-icon"><i class="fa-solid fa-database"></i></div>
+                    <div class="upload-text">Drop your SQLite file here or click to browse</div>
+                    <button class="btn" onclick="document.getElementById('sqliteFileInput').click()"><i class="fa-solid fa-folder-open"></i> Choose SQLite File</button>
+                    <input type="file" id="sqliteFileInput" class="file-input" accept=".sqlite,.sqlite3,.db" />
+                </div>
+
+                <div class="sqlite-options" id="sqliteOptionsSection" style="display: none;">
+                    <h4 class="options-title">
+                        <i class="fa-solid fa-sliders"></i> Conversion Options
+                        <i class="fa-solid fa-chevron-down options-toggle-icon" id="sqliteOptionsToggle"></i>
+                    </h4>
+                    <div class="options-content">
+                        <div class="option-group">
+                            <label for="tableSelector">Select Table:</label>
+                            <select id="tableSelector">
+                                <option value="">Select a table...</option>
+                            </select>
+                        </div>
+                        <div class="option-group">
+                            <label for="csvDelimiter">Output CSV Delimiter:</label>
+                            <select id="csvDelimiter">
+                                <option value=",">Comma (,)</option>
+                                <option value=";">Semicolon (;)</option>
+                                <option value="\t">Tab</option>
+                                <option value="|">Pipe (|)</option>
+                            </select>
+                        </div>
+                        <div class="option-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="includeHeaders" checked>
+                                <label for="includeHeaders">Include column headers</label>
+                            </div>
+                        </div>
+                        <button class="btn-secondary" id="convertBtn"><i class="fa-solid fa-arrow-right-arrow-left"></i> Convert to CSV</button>
+                    </div>
+                </div>
+
+                <div class="progress-section" id="sqliteProgressSection">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="sqliteProgressFill"></div>
+                    </div>
+                    <div id="sqliteProgressText">Processing...</div>
+                </div>
+
+                <div class="status-message" id="sqliteStatusMessage"></div>
+
+                <div class="preview-section" id="sqlitePreviewSection">
+                    <h3><i class="fa-solid fa-eye"></i> CSV Preview (First 5 rows)</h3>
+                    <div id="sqlitePreviewContainer"></div>
+                </div>
+
+                <div class="download-section" id="csvDownloadSection">
+                    <button class="btn-secondary" id="csvDownloadBtn"><i class="fa-solid fa-download"></i> Download CSV File</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><i class="fa-solid fa-shield-halved"></i> This tool processes your data entirely in your browser. No data is sent to any server. <i class="fa-solid fa-shield-halved"></i></p>
+            <p><a href="https://github.com/npcraig/csv-sqlite-html-converter" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-github"></i> 100% Open Source</a></p>
+        </div>
+    </div>
+
+    <script>
+        let SQL;
+        let db;
+        let csvData = [];
+        let headers = [];
+
+        const csvOptionsSection = document.getElementById('csvOptionsSection');
+        const csvOptionsToggle = document.getElementById('csvOptionsToggle');
+        const sqliteOptionsSection = document.getElementById('sqliteOptionsSection');
+        const sqliteOptionsToggle = document.getElementById('sqliteOptionsToggle');
+
+        // Initialize SQL.js
+        initSqlJs({
+            locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}`
+        }).then(function(sql) {
+            SQL = sql;
+            console.log('SQL.js initialized');
+        });
+
+        // File upload handling
+        const uploadSection = document.getElementById('uploadSection');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadSection.addEventListener('click', (e) => {
+            if (!e.target.closest('button')) {
+                fileInput.click();
+            }
+        });
+
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        // Generic function to toggle options visibility
+        function toggleOptions(sectionElement, toggleIconElement) {
+            const isOpen = sectionElement.style.display === 'block';
+            if (isOpen) {
+                sectionElement.style.display = 'none';
+                toggleIconElement.classList.remove('open');
+                toggleIconElement.classList.replace('fa-chevron-up', 'fa-chevron-down');
+            } else {
+                sectionElement.style.display = 'block';
+                toggleIconElement.classList.add('open');
+                toggleIconElement.classList.replace('fa-chevron-down', 'fa-chevron-up');
+            }
+        }
+
+        // Event listeners for toggle icons
+        if (csvOptionsToggle && csvOptionsSection) {
+            csvOptionsToggle.parentElement.addEventListener('click', () => {
+                toggleOptions(csvOptionsSection, csvOptionsToggle);
+            });
+        }
+        if (sqliteOptionsToggle && sqliteOptionsSection) {
+            sqliteOptionsToggle.parentElement.addEventListener('click', () => {
+                toggleOptions(sqliteOptionsSection, sqliteOptionsToggle);
+            });
+        }
+
+        function handleFile(file) {
+            if (!file.name.toLowerCase().endsWith('.csv')) {
+                showStatus('Please select a CSV file.', 'error');
+                return;
+            }
+
+            // Reset and show relevant UI elements
+            showProgress(true);
+            updateProgress(10, 'Reading file...');
+            if (csvOptionsSection.style.display !== 'block') {
+                toggleOptions(csvOptionsSection, csvOptionsToggle); // Open CSV options
+            }
+            if (sqliteOptionsSection.style.display === 'block') { // Close other if open
+                toggleOptions(sqliteOptionsSection, sqliteOptionsToggle);
+            }
+            document.getElementById('previewSection').style.display = 'none';
+            document.getElementById('downloadSection').style.display = 'none';
+            document.getElementById('statusMessage').style.display = 'none';
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csvText = e.target.result;
+                parseCSV(csvText);
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(csvText) {
+            updateProgress(30, 'Parsing CSV data...');
+
+            const delimiter = document.getElementById('delimiter').value;
+            const hasHeaders = document.getElementById('hasHeaders').checked;
+
+            // Simple CSV parser (handles basic cases)
+            const lines = csvText.split('\n').filter(line => line.trim());
+            const rows = lines.map(line => parseCSVLine(line, delimiter));
+
+            if (rows.length === 0) {
+                showStatus('CSV file appears to be empty.', 'error');
+                showProgress(false);
+                return;
+            }
+
+            if (hasHeaders) {
+                headers = rows[0];
+                csvData = rows.slice(1);
+            } else {
+                headers = rows[0].map((_, index) => `column_${index + 1}`);
+                csvData = rows;
+            }
+
+            updateProgress(60, 'Creating database...');
+            createDatabase();
+        }
+
+        function parseCSVLine(line, delimiter) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === delimiter && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current.trim());
+            return result;
+        }
+
+        function createDatabase() {
+            try {
+                db = new SQL.Database();
+                const tableName = document.getElementById('tableName').value || 'data';
+                const inferTypes = document.getElementById('inferTypes').checked;
+
+                // Create table schema
+                let schema = headers.map(header => {
+                    const cleanHeader = header.replace(/[^a-zA-Z0-9_]/g, '_');
+                    if (inferTypes) {
+                        return `"${cleanHeader}" TEXT`; // Start with TEXT, we'll infer later
+                    } else {
+                        return `"${cleanHeader}" TEXT`;
+                    }
+                }).join(', ');
+
+                const createTableSQL = `CREATE TABLE "${tableName}" (${schema})`;
+                db.run(createTableSQL);
+
+                updateProgress(80, 'Inserting data...');
+                insertData(tableName);
+
+            } catch (error) {
+                console.error('Database creation error:', error);
+                showStatus(`Error creating database: ${error.message}`, 'error');
+                showProgress(false);
+            }
+        }
+
+        function insertData(tableName) {
+            try {
+                const placeholders = headers.map(() => '?').join(', ');
+                const insertSQL = `INSERT INTO "${tableName}" VALUES (${placeholders})`;
+                const stmt = db.prepare(insertSQL);
+
+                csvData.forEach(row => {
+                    // Pad row with empty strings if it has fewer columns than headers
+                    while (row.length < headers.length) {
+                        row.push('');
+                    }
+                    // Truncate row if it has more columns than headers
+                    if (row.length > headers.length) {
+                        row = row.slice(0, headers.length);
+                    }
+                    stmt.run(row);
+                });
+
+                stmt.free();
+
+                updateProgress(100, 'Complete!');
+                showStatus(`Successfully converted ${csvData.length} rows to SQLite database.`, 'success');
+                showPreview(tableName);
+                showDownload();
+                
+                setTimeout(() => showProgress(false), 1000);
+
+            } catch (error) {
+                console.error('Data insertion error:', error);
+                showStatus(`Error inserting data: ${error.message}`, 'error');
+                showProgress(false);
+            }
+        }
+
+        function showPreview(tableName) {
+            const previewSection = document.getElementById('previewSection');
+            const previewContainer = document.getElementById('previewContainer');
+
+            try {
+                const results = db.exec(`SELECT * FROM "${tableName}" LIMIT 5`);
+                
+                if (results.length > 0) {
+                    const columns = results[0].columns;
+                    const values = results[0].values;
+
+                    let tableHTML = '<table class="preview-table"><thead><tr>';
+                    columns.forEach(col => {
+                        tableHTML += `<th>${col}</th>`;
+                    });
+                    tableHTML += '</tr></thead><tbody>';
+
+                    values.forEach(row => {
+                        tableHTML += '<tr>';
+                        row.forEach(cell => {
+                            tableHTML += `<td>${cell || ''}</td>`;
+                        });
+                        tableHTML += '</tr>';
+                    });
+
+                    tableHTML += '</tbody></table>';
+                    previewContainer.innerHTML = tableHTML;
+                } else {
+                    previewContainer.innerHTML = '<p>No data to preview.</p>';
+                }
+
+                previewSection.style.display = 'block';
+
+            } catch (error) {
+                console.error('Preview error:', error);
+                previewContainer.innerHTML = '<p>Error generating preview.</p>';
+            }
+        }
+
+        function showDownload() {
+            const downloadSection = document.getElementById('downloadSection');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            downloadBtn.onclick = function() {
+                try {
+                    const data = db.export();
+                    const blob = new Blob([data], { type: 'application/x-sqlite3' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${document.getElementById('tableName').value || 'data'}.sqlite`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    showStatus('Database downloaded successfully!', 'success');
+                } catch (error) {
+                    console.error('Download error:', error);
+                    showStatus(`Error downloading database: ${error.message}`, 'error');
+                }
+            };
+
+            downloadSection.style.display = 'block';
+        }
+
+        function showProgress(show) {
+            const progressSection = document.getElementById('progressSection');
+            progressSection.style.display = show ? 'block' : 'none';
+            if (!show) {
+                updateProgress(0, '');
+            }
+        }
+
+        function updateProgress(percent, text) {
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            progressFill.style.width = percent + '%';
+            progressText.textContent = text;
+        }
+
+        function showStatus(message, type) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message status-${type}`;
+            statusMessage.style.display = 'block';
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusMessage.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Reset form when new file is selected (CSV input)
+        fileInput.addEventListener('change', () => {
+            // Minimal reset here, more comprehensive reset in handleFile
+            // If a file is chosen and then cancelled, we might want to collapse options
+            // But handleFile will manage it if a new file is actually processed.
+        });
+
+        // SQLite to CSV conversion functionality
+        let sqliteDb;
+        let csvOutput = '';
+
+        // SQLite file upload handling
+        const sqliteUploadSection = document.getElementById('sqliteUploadSection');
+        const sqliteFileInput = document.getElementById('sqliteFileInput');
+
+        sqliteUploadSection.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'BUTTON') {
+                sqliteFileInput.click();
+            }
+        });
+
+        sqliteUploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            sqliteUploadSection.classList.add('dragover');
+        });
+
+        sqliteUploadSection.addEventListener('dragleave', () => {
+            sqliteUploadSection.classList.remove('dragover');
+        });
+
+        sqliteUploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            sqliteUploadSection.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleSqliteFile(files[0]);
+            }
+        });
+
+        sqliteFileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleSqliteFile(e.target.files[0]);
+            }
+        });
+
+        function handleSqliteFile(file) {
+            const validExtensions = ['.sqlite', '.sqlite3', '.db'];
+            const isValidFile = validExtensions.some(ext => 
+                file.name.toLowerCase().endsWith(ext)
+            );
+
+            if (!isValidFile) {
+                showSqliteStatus('Please select a SQLite database file (.sqlite, .sqlite3, or .db).', 'error');
+                return;
+            }
+
+            // Reset and show relevant UI elements
+            showSqliteProgress(true);
+            updateSqliteProgress(10, 'Reading SQLite file...');
+            if (sqliteOptionsSection.style.display !== 'block') {
+                toggleOptions(sqliteOptionsSection, sqliteOptionsToggle); // Open SQLite options
+            }
+            if (csvOptionsSection.style.display === 'block') { // Close other if open
+                toggleOptions(csvOptionsSection, csvOptionsToggle);
+            }
+            document.getElementById('sqliteOptionsSection').style.display = 'block'; // Ensure options area is visible for table selector
+            document.getElementById('sqlitePreviewSection').style.display = 'none';
+            document.getElementById('csvDownloadSection').style.display = 'none';
+            document.getElementById('sqliteStatusMessage').style.display = 'none';
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const arrayBuffer = e.target.result;
+                    const uint8Array = new Uint8Array(arrayBuffer);
+                    
+                    updateSqliteProgress(30, 'Loading database...');
+                    sqliteDb = new SQL.Database(uint8Array);
+                    
+                    updateSqliteProgress(50, 'Analyzing tables...');
+                    loadTables();
+                    
+                } catch (error) {
+                    console.error('SQLite loading error:', error);
+                    showSqliteStatus(`Error loading SQLite file: ${error.message}`, 'error');
+                    showSqliteProgress(false);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function loadTables() {
+            try {
+                const tablesQuery = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
+                const results = sqliteDb.exec(tablesQuery);
+                
+                const tableSelector = document.getElementById('tableSelector');
+                tableSelector.innerHTML = '<option value="">Select a table...</option>';
+                
+                if (results.length > 0 && results[0].values.length > 0) {
+                    results[0].values.forEach(row => {
+                        const tableName = row[0];
+                        const option = document.createElement('option');
+                        option.value = tableName;
+                        option.textContent = tableName;
+                        tableSelector.appendChild(option);
+                    });
+                    
+                    updateSqliteProgress(80, 'Tables loaded successfully!');
+                    document.getElementById('sqliteOptionsSection').style.display = 'block';
+                    
+                    // Auto-select first table if only one exists
+                    if (results[0].values.length === 1) {
+                        tableSelector.value = results[0].values[0][0];
+                    }
+                    
+                    updateSqliteProgress(100, 'Ready to convert!');
+                    showSqliteStatus(`Found ${results[0].values.length} table(s) in the database.`, 'success');
+                    
+                    setTimeout(() => showSqliteProgress(false), 1000);
+                } else {
+                    showSqliteStatus('No tables found in the database.', 'error');
+                    showSqliteProgress(false);
+                }
+                
+            } catch (error) {
+                console.error('Table loading error:', error);
+                showSqliteStatus(`Error loading tables: ${error.message}`, 'error');
+                showSqliteProgress(false);
+            }
+        }
+
+        // Convert to CSV button handler
+        document.getElementById('convertBtn').addEventListener('click', () => {
+            const selectedTable = document.getElementById('tableSelector').value;
+            if (!selectedTable) {
+                showSqliteStatus('Please select a table to convert.', 'error');
+                return;
+            }
+            
+            convertTableToCSV(selectedTable);
+        });
+
+        function convertTableToCSV(tableName) {
+            try {
+                showSqliteProgress(true);
+                updateSqliteProgress(20, 'Querying table data...');
+                
+                const query = `SELECT * FROM "${tableName}"`;
+                const results = sqliteDb.exec(query);
+                
+                if (results.length === 0) {
+                    showSqliteStatus('Table is empty or does not exist.', 'error');
+                    showSqliteProgress(false);
+                    return;
+                }
+                
+                updateSqliteProgress(50, 'Converting to CSV format...');
+                
+                const columns = results[0].columns;
+                const values = results[0].values;
+                const delimiter = document.getElementById('csvDelimiter').value;
+                const includeHeaders = document.getElementById('includeHeaders').checked;
+                
+                // Build CSV content
+                let csvContent = '';
+                
+                // Add headers if requested
+                if (includeHeaders) {
+                    csvContent += columns.map(col => escapeCSVField(col, delimiter)).join(delimiter) + '\n';
+                }
+                
+                // Add data rows
+                values.forEach(row => {
+                    const csvRow = row.map(cell => escapeCSVField(cell, delimiter)).join(delimiter);
+                    csvContent += csvRow + '\n';
+                });
+                
+                csvOutput = csvContent;
+                
+                updateSqliteProgress(80, 'Generating preview...');
+                showSqlitePreview(columns, values.slice(0, 5), delimiter);
+                
+                updateSqliteProgress(100, 'Conversion complete!');
+                showSqliteStatus(`Successfully converted ${values.length} rows from table "${tableName}".`, 'success');
+                showCSVDownload(tableName);
+                
+                setTimeout(() => showSqliteProgress(false), 1000);
+                
+            } catch (error) {
+                console.error('CSV conversion error:', error);
+                showSqliteStatus(`Error converting to CSV: ${error.message}`, 'error');
+                showSqliteProgress(false);
+            }
+        }
+
+        function escapeCSVField(field, delimiter) {
+            if (field === null || field === undefined) {
+                return '';
+            }
+            
+            const stringField = String(field);
+            
+            // If field contains delimiter, quotes, or newlines, wrap in quotes and escape internal quotes
+            if (stringField.includes(delimiter) || stringField.includes('"') || stringField.includes('\n') || stringField.includes('\r')) {
+                return '"' + stringField.replace(/"/g, '""') + '"';
+            }
+            
+            return stringField;
+        }
+
+        function showSqlitePreview(columns, values, delimiter) {
+            const previewSection = document.getElementById('sqlitePreviewSection');
+            const previewContainer = document.getElementById('sqlitePreviewContainer');
+            
+            try {
+                let tableHTML = '<table class="preview-table"><thead><tr>';
+                columns.forEach(col => {
+                    tableHTML += `<th>${col}</th>`;
+                });
+                tableHTML += '</tr></thead><tbody>';
+
+                values.forEach(row => {
+                    tableHTML += '<tr>';
+                    row.forEach(cell => {
+                        tableHTML += `<td>${cell || ''}</td>`;
+                    });
+                    tableHTML += '</tr>';
+                });
+
+                tableHTML += '</tbody></table>';
+                previewContainer.innerHTML = tableHTML;
+                previewSection.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Preview error:', error);
+                previewContainer.innerHTML = '<p>Error generating preview.</p>';
+            }
+        }
+
+        function showCSVDownload(tableName) {
+            const downloadSection = document.getElementById('csvDownloadSection');
+            const downloadBtn = document.getElementById('csvDownloadBtn');
+
+            downloadBtn.onclick = function() {
+                try {
+                    const blob = new Blob([csvOutput], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${tableName}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    showSqliteStatus('CSV file downloaded successfully!', 'success');
+                } catch (error) {
+                    console.error('Download error:', error);
+                    showSqliteStatus(`Error downloading CSV: ${error.message}`, 'error');
+                }
+            };
+
+            downloadSection.style.display = 'block';
+        }
+
+        // SQLite-specific progress and status functions
+        function showSqliteProgress(show) {
+            const progressSection = document.getElementById('sqliteProgressSection');
+            progressSection.style.display = show ? 'block' : 'none';
+            if (!show) {
+                updateSqliteProgress(0, '');
+            }
+        }
+
+        function updateSqliteProgress(percent, text) {
+            const progressFill = document.getElementById('sqliteProgressFill');
+            const progressText = document.getElementById('sqliteProgressText');
+            
+            progressFill.style.width = percent + '%';
+            progressText.textContent = text;
+        }
+
+        function showSqliteStatus(message, type) {
+            const statusMessage = document.getElementById('sqliteStatusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message status-${type}`;
+            statusMessage.style.display = 'block';
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusMessage.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Reset SQLite form when new file is selected
+        sqliteFileInput.addEventListener('change', () => {
+            // Minimal reset here, more comprehensive reset in handleSqliteFile
+        });
+    </script>
+</body>
+</html>
