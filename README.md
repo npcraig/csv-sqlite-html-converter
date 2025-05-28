@@ -7,13 +7,17 @@ A powerful, privacy-focused web application for converting between CSV files and
 ## 🚀 Features
 
 ### CSV to SQLite
+- **Multi-File Support**: Upload and process multiple CSV files individually
+- **Individual File Management**: Preview, select, and manage each processed file separately
+- **Selective Combination**: Choose which processed files to combine into your SQLite database
 - **Drag & Drop Interface**: Simply drag your CSV files onto the upload area
 - **Flexible Parsing**: Support for various delimiters (comma, semicolon, tab, pipe)
 - **Smart Type Detection**: Automatically infer column data types
-- **Custom Table Names**: Specify your preferred table name
+- **Auto Table Naming**: Tables are automatically named based on CSV filenames
 - **Header Detection**: Automatically detect if first row contains headers
-- **Live Preview**: See your data before downloading
-- **Progress Tracking**: Real-time conversion progress
+- **Individual Previews**: Preview each processed file's data independently
+- **Progress Tracking**: Real-time processing progress for each file
+- **File Replacement**: Re-upload files with the same name to replace previous versions
 
 ### SQLite to CSV
 - **Database Analysis**: Automatically detect and list all tables in your SQLite file
@@ -22,6 +26,28 @@ A powerful, privacy-focused web application for converting between CSV files and
 - **Header Options**: Include or exclude column headers
 - **Data Preview**: Preview converted data before download
 - **Multiple Formats**: Support for .sqlite, .sqlite3, and .db files
+
+## 🔄 Workflow Advantages
+
+### **Individual File Processing**
+- Each CSV file is processed and stored independently
+- No risk of losing work when adding new files
+- Preview and validate each file before including it in your database
+
+### **Selective Combination**
+- Choose exactly which files to include in your final database
+- Mix and match data sources for different projects
+- Create multiple databases from the same collection of processed files
+
+### **Iterative Workflow**
+- Upload files as they become available
+- Build your database incrementally over time
+- Replace outdated files without starting over
+
+### **Quality Control**
+- Preview each file's data structure and content
+- Remove problematic files without affecting others
+- Ensure data quality before creating your final database
 
 ## 🔒 Privacy & Security
 
@@ -35,19 +61,34 @@ A powerful, privacy-focused web application for converting between CSV files and
 
 ### Converting CSV to SQLite
 
-1. **Upload your CSV file**:
-   - Drag and drop your CSV file onto the upload area, or
-   - Click "Choose CSV File" to browse and select
+1. **Upload your CSV files**:
+   - Drag and drop one or more CSV files onto the upload area, or
+   - Click "Choose CSV Files" to browse and select multiple files
 
-2. **Configure options** (optional):
-   - Set table name (default: "data")
-   - Choose CSV delimiter
+2. **Configure parsing options** (applied to all files):
+   - Choose CSV delimiter (comma, semicolon, tab, pipe)
    - Toggle header detection
    - Enable/disable automatic type inference
 
-3. **Convert**: The conversion starts automatically after file upload
+3. **Individual file processing**:
+   - Each CSV file is processed independently and appears in the "Processed CSV Files" list
+   - Files are automatically selected for combination by default
+   - Monitor processing progress for each file
 
-4. **Preview & Download**: Review your data and download the SQLite database
+4. **Manage processed files**:
+   - **Preview**: Click the eye icon to view sample data from any processed file
+   - **Select/Deselect**: Use checkboxes to choose which files to include in your database
+   - **Remove**: Click the trash icon to delete files you no longer need
+   - **Replace**: Upload a file with the same name to replace an existing processed file
+
+5. **Combine selected files**:
+   - Review which files are selected (checkboxes checked)
+   - Click "Combine Selected (X) into SQLite DB" to create your database
+   - Each selected CSV becomes a separate table named after its filename
+
+6. **Preview & Download**: 
+   - Review the combined database with all selected tables
+   - Download the single SQLite database file containing your chosen tables
 
 ### Converting SQLite to CSV
 
@@ -116,19 +157,24 @@ The application is a single HTML file that can be:
 - **Responsive Design**: Works on desktop, tablet, and mobile
 - **Modern Styling**: Clean, professional interface with smooth animations
 - **Intuitive Navigation**: Clear visual feedback and progress indicators
+- **File Management**: Individual file controls with preview, selection, and deletion
 - **Accessibility**: Proper ARIA labels and keyboard navigation
 
 ### Data Processing
+- **Individual File Processing**: Each CSV is parsed and stored independently
 - **Robust CSV Parsing**: Handles quoted fields, escaped characters, and edge cases
 - **Type Inference**: Automatically detects numbers, dates, and text
-- **Error Handling**: Comprehensive error messages and recovery
+- **Error Handling**: Comprehensive error messages and recovery per file
 - **Memory Efficient**: Streaming processing for large files
+- **File Replacement**: Smart handling of duplicate filenames
 
 ### Export Options
+- **Selective Combination**: Choose which processed files to include in the final database
 - **SQLite Compatibility**: Standard SQLite format compatible with all SQLite tools
 - **CSV Standards**: RFC 4180 compliant CSV output
-- **Custom Naming**: User-defined table and file names
+- **Auto Table Naming**: Tables named based on source filenames with sanitization
 - **Format Preservation**: Maintains data integrity during conversion
+- **Multiple Outputs**: Create different databases from the same processed files
 
 ## 🤝 Contributing
 
@@ -158,33 +204,55 @@ This project is open source. See the repository for license details.
 
 ## 📊 Use Cases
 
-- **Data Analysis**: Convert CSV data to SQLite for SQL queries
-- **Data Migration**: Move between different data formats
-- **Database Development**: Create test databases from CSV data
-- **Data Archival**: Convert CSVs to compact SQLite format
-- **Report Generation**: Extract specific tables from databases
-- **Data Sharing**: Convert databases to universally readable CSV
+- **Data Analysis**: Process multiple CSV datasets and selectively combine relevant ones for SQL queries
+- **Data Curation**: Upload various CSV files, preview each one, and choose only the ones you need
+- **Iterative Database Building**: Add CSV files over time and combine them when your dataset is complete
+- **Data Quality Control**: Preview individual files before including them in your final database
+- **Selective Data Migration**: Choose specific data sources from a collection of CSV files
+- **Project-Based Organization**: Process files individually, then create project-specific databases
+- **Database Development**: Create test databases from curated CSV data sources
+- **Data Archival**: Convert selected CSVs to compact SQLite format for long-term storage
+- **Report Generation**: Extract specific tables from databases back to CSV
+- **Multi-Source Integration**: Combine data from different sources with full control over inclusion
 
 ## 🔧 Troubleshooting
 
 ### Common Issues
 
-**File not uploading?**
-- Check file extension (.csv for CSV, .sqlite/.sqlite3/.db for SQLite)
-- Ensure file is not corrupted
-- Try with a smaller file first
+**Files not appearing in the processed list?**
+- Check that files have .csv extension
+- Ensure files are not empty or corrupted
+- Try uploading files one at a time to identify problematic ones
+
+**Can't see individual file preview?**
+- Click the eye icon next to the file name
+- Check that the file processed successfully (no error status)
+- Try refreshing the page if previews aren't loading
+
+**Combine button disabled?**
+- Ensure at least one file is selected (checkbox checked)
+- Check that files have been processed successfully
+- Verify files appear in the processed files list
+
+**File replacement not working?**
+- Make sure the new file has exactly the same name as the original
+- Check that the file is a valid CSV format
+- The old file should be automatically replaced in the list
 
 **Conversion failing?**
-- Verify CSV format is valid
-- Check for unusual characters or encoding issues
+- Verify CSV format is valid for each file
+- Check for unusual characters or encoding issues in individual files
 - Try different delimiter settings
+- Use individual file previews to identify problematic data
 
 **Large file performance?**
+- Process files individually to identify performance bottlenecks
 - Use modern browser with sufficient RAM
 - Close other browser tabs
 - Consider splitting very large files
 
 **Download not working?**
+- Ensure at least one file is selected for combination
 - Check browser download settings
 - Ensure pop-ups are not blocked
 - Try right-clicking and "Save As"
