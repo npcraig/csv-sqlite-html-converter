@@ -85,7 +85,7 @@ A powerful, privacy-focused web application for converting between CSV files and
 ## 📁 Project Structure
 
 ```
-csv-sqlite-html/
+csv-sqlite-html-converter/
 ├── CSVtoSQLiteDB.html    # Main application file
 └── README.md             # This documentation
 ```
@@ -96,7 +96,7 @@ csv-sqlite-html/
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/npcraig/csv-sqlite-html.git
+   git clone https://github.com/npcraig/csv-sqlite-html-converter.git
    ```
 
 2. **Open in browser**:
@@ -134,7 +134,7 @@ The application is a single HTML file that can be:
 
 Contributions are welcome! Here's how you can help:
 
-1. **Report Issues**: Found a bug? [Open an issue](https://github.com/npcraig/csv-sqlite-html/issues)
+1. **Report Issues**: Found a bug? [Open an issue](https://github.com/npcraig/csv-sqlite-html-converter/issues)
 2. **Feature Requests**: Have an idea? Let us know!
 3. **Pull Requests**: Submit improvements or fixes
 4. **Documentation**: Help improve this README or add examples
